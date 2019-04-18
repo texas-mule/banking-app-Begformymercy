@@ -3,9 +3,7 @@ package com.revature;
 import java.util.Scanner;
 import java.io.*;
 
-public class BankingEmployee {
-	public String EmployeeName;
-	public String EmployeePass;
+public class BankingEmployee extends BankAccountUser {
 	public BankingAccount[] BAs;
 	
 	String input ="";
@@ -16,8 +14,7 @@ public class BankingEmployee {
 	int result;//int casting variable
 	
 	public BankingEmployee(String employeeName, String employeePass) {
-		this.EmployeeName=employeeName;
-		this.EmployeePass=employeePass;
+		super(employeeName, employeePass);
 	}
 	
 	public Boolean approveAccounts() {
@@ -77,7 +74,7 @@ public class BankingEmployee {
 	}
 	
 	public void menu() {
-		if(!readEmployeeFile(EmployeeName,EmployeePass)) {
+		if(!readEmployeeFile(super.userString,super.passwordString)) {
 			System.out.println("Sorry Login is incorrect or not in database");
 			return;
 		}

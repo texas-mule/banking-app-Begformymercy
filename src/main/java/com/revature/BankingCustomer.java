@@ -6,20 +6,17 @@ import java.io.*;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class BankingCustomer {
+public class BankingCustomer extends BankAccountUser{
 
-	String userName;
-	String password;
 	String input ="";
-	BankingAccount bA;
+	BankingAccount bA;//Customer has a banking account
 	Scanner scan = new Scanner(System.in);
 	Boolean loggedIn = false;//account is logged in, shouldn't need to create a new account
 	int result;//int casting variable
 	int accountIDCounter;//need to read the file to determine the value, then append the account line to it
 	
 	public BankingCustomer(String customername, String customerpass) {
-		this.userName=customername;
-		this.password=customerpass;
+		super(customername, customerpass);
 	}
 	
 	public Integer tryInteger(String str) {
@@ -82,10 +79,10 @@ public class BankingCustomer {
 	}
 	
 	public void menu() {		
-		if(userName.equals("") && password.equals("")) {
-			loggedIn = true;//If account cannot be found on database, then create one
-		}
-		System.out.println("Sorry, could not locate an exisisting account, create an account:");
+//		if(userName.equals("") && password.equals("")) {
+//			loggedIn = true;//If account cannot be found on database, then create one
+//		}
+//		System.out.println("Sorry, could not locate an exisisting account, create an account:");
 		
 		
 		//Open account, check balance, deposit, withdrawal, close account
@@ -105,8 +102,9 @@ public class BankingCustomer {
 		
 			switch (result) { 
 	        case 1: 
+	        	createAccountUser();
 				System.out.println("Creates account");
-				System.out.println("So you  have chosen a user name and password which are: "+userName+" "+password);
+				System.out.println("So you  have chosen a user name and password which are: "+super.userString+" "+super.passwordString);
 				System.out.println("Your account number will be: ");//grab from database query
 				System.out.println("Your account balance is currently 0 would you like to make a deposit? ");
 				input = scan.nextLine();
@@ -164,7 +162,7 @@ public class BankingCustomer {
 	            break; 
 	        }
 		}catch (Exception e) {
-			System.out.println("is it really so hard to type an integer?");
+			System.out.println("Did not input an integer?");
 		}
 	
 	}
