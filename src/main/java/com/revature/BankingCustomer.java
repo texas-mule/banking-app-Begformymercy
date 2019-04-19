@@ -13,6 +13,7 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 	int result;//integer casting variable
 	int accountIDCounter;//need to read the file to determine the value, then append the account line to it
 	ArrayList<BankingAccount> applicationsAccounts = new ArrayList<BankingAccount>();//update all customers on the file
+	int foundTheIndex =0;
 	
 	public BankingCustomer(String customername, String customerpass) {
 		super(customername, customerpass);
@@ -42,25 +43,27 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 		System.out.println(userName+" "+password);
 		String accountsFile = "Accounts.txt";
 		String line = null;
+		boolean foundYou = false;
 		
 		try {
 			FileReader fileReader = new FileReader(accountsFile);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			
 			while((line = bufferedReader.readLine()) !=null) {
-				String [] words = line.split(" ");				
+				String [] words = line.split(" ");	
+				Integer accountInt = tryInteger(words[0]);
+				Double balanceDouble = tryDouble(words[5]);
+				BankingAccount tempA = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);		
+				applicationsAccounts.add(tempA);//Copy everything in the File to our internal database
 				if(words[1].equals(userName)&&words[2].equals(password)||words[3].equals(userName)&&words[4].equals(password) ) {
-					//Create a BankingAccount Object
-					Integer accountInt = tryInteger(words[0]);
-					Double balanceDouble = tryDouble(words[5]);
-					if(balanceDouble==null)
-						balanceDouble=0.0;
-					bA = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
-					return true;					
+					//Create a BankingAccount Object		
+					foundYou = true;	
+					foundTheIndex = tryInteger(words[0]);
 				}
-				accountIDCounter++;//count total amount of accounts
+				accountIDCounter = tryInteger(words[0]);
 			}
 			bufferedReader.close();
+			return foundYou;
 		}
         catch(FileNotFoundException ex) {
             System.out.println(
@@ -74,68 +77,35 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
         }
 		return false;//cannot log in as user	      
 	}
-	
-	public Boolean writeCustomerFile() {
-		return false;
-	}
-	
+		
 	private void reWriteAccounts() {
 		String accountsFile = "Accounts.txt";
-		String line = null;
-		int accountID=0;	
-		try {
-			FileReader fileReader = new FileReader(accountsFile);
-			BufferedReader bufferedReader = new BufferedReader(fileReader);
-			
-			while((line = bufferedReader.readLine()) !=null) {
-				String [] words = line.split(" ");	
-				Integer accountInt = tryInteger(words[0]);
-				Double balanceDouble = tryDouble(words[5]);
-				BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
-				applicationsAccounts.add(tempAccount);
-				accountID=accountInt;
-			}
-			bufferedReader.close();
-		}
-        catch(FileNotFoundException ex) {
-            System.out.println(
-                "Unable to open file '" + 
-                		accountsFile + "'");                
-        }
-        catch(IOException ex) {
-            System.out.println(
-                "Error reading file '" 
-                + accountsFile + "'");  
-        }
 		
 		try {
             FileWriter fileWriter =
-                new FileWriter(accountsFile);
+                new FileWriter(accountsFile,false);
+            
 
             BufferedWriter bufferedWriter =
                 new BufferedWriter(fileWriter);
 
-			accountID += 1;
-
+            System.out.println("writing to file: "+applicationsAccounts.size());
             for (BankingAccount bankingAccount : applicationsAccounts) {
-            	bufferedWriter.write(accountID+" "+bankingAccount.getPrimaryUserName()+" "+bankingAccount.getPrimaryPass()+" "+
+            	bufferedWriter.write(bankingAccount.getAccountID()+" "+bankingAccount.getPrimaryUserName()+" "+bankingAccount.getPrimaryPass()+" "+
             			bankingAccount.getJointUsername()+" "+bankingAccount.getJointPass()+" "+bankingAccount.getBalance()+" "+
             			bankingAccount.getApproveStatus());
     		            bufferedWriter.newLine();
 			}
-            
-            bufferedWriter.write(bA.getAccountID()+" "+bA.getPrimaryUserName()+" "+bA.getPrimaryPass()+" "+bA.getJointUsername()+" "+
-            bA.getJointPass()+" "+bA.getBalance()+" "+bA.getApproveStatus());
-            bufferedWriter.newLine();
 
+            //fileWriter.close();
             bufferedWriter.close();
-            fileWriter.close();
             
         }
         catch(IOException ex) {
             System.out.println(
                 "Error writing to file '"
                 + accountsFile + "'");
+            ex.printStackTrace();
         }
 	}
 	
@@ -163,17 +133,18 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 	        case 1: 
 	        	String userName=super.userString;
 	        	String userPass=super.passwordString;
-	        	readCustomerFile(userName, userPass);
 	        	double Balance=0.0;	
 	        	
 				System.out.println("Creates account");
 				System.out.println("So you  have chosen a user name and password which are: "+userName+" "+userPass);
 				//create new BankingAccount object to file
+				accountIDCounter+=1;
 				bA = new BankingAccount(accountIDCounter, userName, userPass, "", "", Balance);
 				System.out.println("Your account number will be: "+ accountIDCounter);//grab from database query
 				System.out.println("Your account balance is currently 0 would you like to make a deposit? ");
 				input = scan.nextLine();
-				if(input.toLowerCase().equals("yes")) {
+				System.out.println(input+" "+input.toLowerCase().trim());
+				if(input.toLowerCase().trim().equals("yes")) {
 					System.out.println("Please enter an ammount you would like to deposit? as a double ");
 					input = scan.nextLine();
 					if(tryDouble(input) != null) {
@@ -188,7 +159,7 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 				}
 				System.out.println("Would you like to make this a joint bank account now? yes/no");
 				input = scan.nextLine();
-				if(input.toLowerCase().equals("yes")) {
+				if(input.toLowerCase().trim().equals("yes")) {
 					System.out.println("Please enter your joint username:");
 					input = scan.nextLine();
 					bA.setJointUsername(input);
@@ -201,119 +172,78 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 					System.out.println("your account information: "+bA.getAccountID()+" "+bA.getPrimaryUserName()+" "+bA.getJointUsername()+" "+bA.getBalance());
 					System.out.println("Thank you for using the Banking App");
 				}
+				Boolean databaseCheckBoolean = false;
+				for (BankingAccount bankingAccount : applicationsAccounts) {
+					if(bankingAccount.getAccountID()==bA.getAccountID()) {
+						databaseCheckBoolean = true;
+					}
+				}
+				if(!databaseCheckBoolean) {
+					applicationsAccounts.add(bA);
+				}
+				System.out.println(applicationsAccounts.size());
 				reWriteAccounts();
-//				String accountsFile = "Accounts.txt";
-//				String line = null;
-//				int accountID=0;	
-//				try {
-//					FileReader fileReader = new FileReader(accountsFile);
-//					BufferedReader bufferedReader = new BufferedReader(fileReader);
-//					
-//					while((line = bufferedReader.readLine()) !=null) {
-//						String [] words = line.split(" ");	
-//						Integer accountInt = tryInteger(words[0]);
-//						Double balanceDouble = tryDouble(words[5]);
-//						BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
-//						applicationsAccounts.add(tempAccount);
-//						accountID=accountInt;
-//					}
-//					bufferedReader.close();
-//				}
-//		        catch(FileNotFoundException ex) {
-//		            System.out.println(
-//		                "Unable to open file '" + 
-//		                		accountsFile + "'");                
-//		        }
-//		        catch(IOException ex) {
-//		            System.out.println(
-//		                "Error reading file '" 
-//		                + accountsFile + "'");  
-//		        }
-//				
-//				try {
-//		            FileWriter fileWriter =
-//		                new FileWriter(accountsFile);
-//
-//		            BufferedWriter bufferedWriter =
-//		                new BufferedWriter(fileWriter);
-//
-//					accountID += 1;
-//
-//		            for (BankingAccount bankingAccount : applicationsAccounts) {
-//		            	bufferedWriter.write(accountID+" "+bankingAccount.getPrimaryUserName()+" "+bankingAccount.getPrimaryPass()+" "+
-//		            			bankingAccount.getJointUsername()+" "+bankingAccount.getJointPass()+" "+bankingAccount.getBalance()+" "+
-//		            			bankingAccount.getApproveStatus());
-//		    		            bufferedWriter.newLine();
-//					}
-//		            
-//		            bufferedWriter.write(bA.getAccountID()+" "+bA.getPrimaryUserName()+" "+bA.getPrimaryPass()+" "+bA.getJointUsername()+" "+
-//		            bA.getJointPass()+" "+bA.getBalance()+" "+bA.getApproveStatus());
-//		            bufferedWriter.newLine();
-//
-//		            bufferedWriter.close();
-//		        }
-//		        catch(IOException ex) {
-//		            System.out.println(
-//		                "Error writing to file '"
-//		                + accountsFile + "'");
-//		        }
 	            break; 
 	        case 2:  
-	        	readCustomerFile(super.userString, super.passwordString);
-				System.out.println("Your balance is: "+bA.getBalance());
-				reWriteAccounts();
+	        	if(loggedIn) {
+					System.out.println("Your balance is: "+applicationsAccounts.get(foundTheIndex).getBalance());
+	        	}
 	            break; 
-	        case 3: 
-	        	readCustomerFile(super.userString, super.passwordString);
-				System.out.println("Enter ammount to deposit: enter a double");
-				input = scan.nextLine();
-				if(tryDouble(input) != null) {
-					System.out.println("Your balance was: "+bA.getBalance());
-					bA.deposit(tryDouble(input));
-					System.out.println("Your new balance is: "+bA.getBalance());
-					reWriteAccounts();
-	        	}else {
-					System.out.println("Didn't enter a Double");
-					break;
-				}
-	            break; 
-	        case 4:  
-	        	readCustomerFile(super.userString, super.passwordString);
-				System.out.println("Enter ammount to withdraw: enter a double");
-				input = scan.nextLine();
-				if(tryDouble(input) != null) {
-	        		//change balance
-					if(bA.getBalance()<tryDouble(input)) {
-						System.out.println("You do not have that much in your account, You have: "+bA.getBalance());
-					}else {
-						System.out.println("Your balance was: "+bA.getBalance());
-						bA.withdrawl(tryDouble(input));
-						System.out.println("Your new balance is: "+bA.getBalance());
+	        case 3:   
+	        	if(loggedIn) {
+					System.out.println("Enter ammount to deposit: enter a double");
+					input = scan.nextLine();
+					if(tryDouble(input) != null) {
+						System.out.println("Your balance was: "+applicationsAccounts.get(foundTheIndex).getBalance());
+						applicationsAccounts.get(foundTheIndex).deposit(tryDouble(input));
+						System.out.println("Your new balance is: "+applicationsAccounts.get(foundTheIndex).getBalance());
 						reWriteAccounts();
+		        	}else {
+						System.out.println("Didn't enter a Double");
+						break;
 					}
 	        	}
-				else {
-					System.out.println("Didn't enter a Double");
-					break;
-				}
 	            break; 
-	        case 5:
-	        	readCustomerFile(super.userString, super.passwordString);
-	        	bA.closeAccount();
-				reWriteAccounts();
-				System.out.println("Closed account, you are now broke");  
+	        case 4:    
+	        	if(loggedIn) {
+					System.out.println("Enter ammount to withdraw: enter a double");
+					input = scan.nextLine();
+					if(tryDouble(input) != null) {
+		        		//change balance
+						if(applicationsAccounts.get(foundTheIndex).getBalance()<tryDouble(input)) {
+							System.out.println("You do not have that much in your account, You have: "+bA.getBalance());
+						}else {
+							System.out.println("Your balance was: "+applicationsAccounts.get(foundTheIndex).getBalance());
+							applicationsAccounts.get(foundTheIndex).withdrawl(tryDouble(input));
+							System.out.println("Your new balance is: "+applicationsAccounts.get(foundTheIndex).getBalance());
+							reWriteAccounts();
+						}
+		        	}
+					else {
+						System.out.println("Didn't enter a Double");
+						break;
+					}
+	        	}
 	            break; 
-	        case 6:
-	        	readCustomerFile(super.userString, super.passwordString);
-				System.out.println("Enter your new password: "); 
-				if(bA.JointUsername.equals(super.userString)) {
-					input = scan.nextLine();
-					bA.changeJointPassword(input);
-				}else if(bA.PrimaryUserName.equals(super.userString)){
-					input = scan.nextLine();
-					bA.changePrimaryPassword(input);					
-				}
-				reWriteAccounts();
+	        case 5:  
+	        	if(loggedIn) {
+		        	applicationsAccounts.get(foundTheIndex).closeAccount();
+					reWriteAccounts();
+					System.out.println("Closed account, you are now broke");  
+	        	}
+	            break; 
+	        case 6:  
+	        	if(loggedIn) {
+					System.out.println("Enter your new password: "); 
+					if(applicationsAccounts.get(foundTheIndex).JointUsername.equals(super.userString)) {
+						input = scan.nextLine();
+						applicationsAccounts.get(foundTheIndex).changeJointPassword(input.trim());
+					}else if(applicationsAccounts.get(foundTheIndex).PrimaryUserName.equals(super.userString)){
+						input = scan.nextLine();
+						applicationsAccounts.get(foundTheIndex).changePrimaryPassword(input.trim());					
+					}
+					reWriteAccounts();
+	        	}
 	            break; 
 	        default: 
 	        	System.out.println("You didn't make a correct selection."); 
@@ -322,6 +252,7 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 		}catch (Exception e) {
 			System.out.println("Did not input an integer?");
 		}
+		accountIDCounter=0;
 	}
 
 }
