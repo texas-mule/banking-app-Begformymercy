@@ -17,42 +17,60 @@ public class BankingEmployee extends BankAccountUser {//Employee is a user
 		super(employeeName, employeePass);
 	}
 	
-	public Boolean approveAccounts() {
-			String accountsFile = "Accounts.txt";
-			String line = null;
+	//Populate local DB : applicationsAccounts
+	public void readCustomerFile() {
+		String accountsFile = "Accounts.txt";
+		String line = null;
+		
+		try {
+			FileReader fileReader = new FileReader(accountsFile);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			
-			try {
-				FileReader fileReader = new FileReader(accountsFile);
-				BufferedReader bufferedReader = new BufferedReader(fileReader);
-				
-				while((line = bufferedReader.readLine()) !=null) {
-					String [] words = line.split(" ");	
-					Integer accountInt = tryInteger(words[0]);
-					Double balanceDouble = tryDouble(words[5]);
-					BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
-					if(words[6].equals("false")) {
-						tempAccount.approveAccount();																
-					}
-					applicationsAccounts.add(tempAccount);	
-					return true;
-				}
-				bufferedReader.close();
+			while((line = bufferedReader.readLine()) !=null) {
+				String [] words = line.split(" ");	
+				Integer accountInt = tryInteger(words[0]);
+				Double balanceDouble = tryDouble(words[5]);
+				BankingAccount tempA = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);		
+				applicationsAccounts.add(tempA);//Copy everything in the File to our internal database
 			}
-	        catch(FileNotFoundException ex) {
-	            System.out.println(
-	                "Unable to open file '" + 
-	                		accountsFile + "'");                
-	        }
-	        catch(IOException ex) {
-	            System.out.println(
-	                "Error reading file '" 
-	                + accountsFile + "'");  
-	        }
-			return false;//could not read file	 
-			
+			bufferedReader.close();
+		}
+        catch(FileNotFoundException ex) {
+            System.out.println(
+                "Unable to open file '" + 
+                		accountsFile + "'");                
+        }
+        catch(IOException ex) {
+            System.out.println(
+                "Error reading file '" 
+                + accountsFile + "'");  
+        }    
 	}
 	
+	public Boolean approveAllAccounts() {		
+		for (BankingAccount bankingAccount : applicationsAccounts) {
+			if(bankingAccount.getApproveStatus()==false)
+				bankingAccount.approveAccount();
+		}	
+		return true;
+	}
 	
+	public Boolean approveAccount(int iD) {
+		for (BankingAccount bankingAccount : applicationsAccounts) {
+			if(bankingAccount.getAccountID()==iD)
+				bankingAccount.approveAccount();
+		}			
+		return true;
+	}
+	
+	public Boolean denyAccount(int iD) {
+		Boolean goodToPurgeBoolean = false;
+		for (BankingAccount bankingAccount : applicationsAccounts) {
+			if(bankingAccount.getAccountID()==iD)
+				bankingAccount.closeAccount();goodToPurgeBoolean= true;
+		}			
+		return goodToPurgeBoolean;
+	}
 	
 	public Integer tryInteger(String str) {
 		try {
@@ -110,37 +128,51 @@ public class BankingEmployee extends BankAccountUser {//Employee is a user
 			System.out.println("Sorry Login is incorrect or not in database");
 			return;
 		}
-		//admin check on log in
-		System.out.println("To approve or deny accounts press 1");
-		if(admin)
-			System.out.println("To edit accounts enter 2");
-		input = scan.nextLine();
-		try {
-			result = Integer.parseInt(input);
-			switch (result) { 
-			case 1: 
-				System.out.println("You are going to approve or deny accounts");
-				System.out.println("To approve an account enter 1");
-				System.out.println("To deny an account enter 2");
-
-				input = scan.nextLine();
-				try {
-					int someNumber = Integer.parseInt(input);
-					switch (someNumber) { 
-					case 1: 
-						System.out.println("Account Approved");
-						//approve account BankingAccout.approveAccount();
-					    break; 
-					case 2:
-						System.out.println("Account Denied");	
-						//deny account if(BankingAccout.approveAccount() == false);
-					    break;
-					default: 
-						break; //user didn't enter 1 / 2
+		if(!admin) {
+			System.out.println("To approve account press 1");
+			System.out.println("To deny account/remove account press 2");
+			System.out.println("To approve all accounts press 3");
+			input = scan.nextLine();
+			try {
+				int someNumber = tryInteger(input);
+				switch (someNumber) { 
+				case 1: 
+					input = scan.nextLine();
+					int accountToApprove = tryInteger(input);
+					approveAccount(accountToApprove);
+					System.out.println("Account Approved");
+				    break; 
+				case 2:	//close account
+					input = scan.nextLine();
+					int accountToDelete = tryInteger(input);
+					if(denyAccount(accountToDelete)) {
+						for (BankingAccount bankingAccount : applicationsAccounts) {
+							if(bankingAccount.getAccountID()==accountToDelete)
+								applicationsAccounts.remove(bankingAccount);
+						}
 					}
-				}catch (Exception e) {
-					System.out.println("Didn't make a correct selection");
-				}break; 
+					System.out.println("Account Denied");
+				    break;
+				case 3:	//close account
+					approveAllAccounts();
+					System.out.println("All Accounts Approved");
+				    break;
+				default: 
+					break; //user didn't enter 1 / 2
+				}
+				//Write to Accounts.txt here
+			}catch (Exception e) {
+				System.out.println("Didn't make a correct selection");
+			}
+		}else {
+			try {				
+				System.out.println("To edit account enter 1");
+				input = scan.nextLine();
+				int result =tryInteger(input);
+				switch (result) { 
+				case 1: 
+
+					break; 
 				case 2: 				
 					if(readEmployeeFile(super.userString, super.passwordString)) {
 
@@ -156,8 +188,11 @@ public class BankingEmployee extends BankAccountUser {//Employee is a user
 								String [] words = line.split(" ");	
 								Integer accountInt = tryInteger(words[0]);
 								Double balanceDouble = tryDouble(words[5]);
-								BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
-								applicationsAccounts.add(tempAccount);	
+								/*
+								 * Find the account in local DB and edit it
+								 */
+								//BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
+								//applicationsAccounts.add(tempAccount);	
 							}
 							bufferedReader.close();
 						}
@@ -186,7 +221,7 @@ public class BankingEmployee extends BankAccountUser {//Employee is a user
 								System.out.println("Didn't enter an Integer");
 								break;
 							}
-							int someNumber = Integer.parseInt(input);
+							int someNumber = tryInteger(input);
 							switch (someNumber) { 
 					        case 1: //Change Primary User Password 
 								System.out.println("Changed Primary User Password");
@@ -253,8 +288,8 @@ public class BankingEmployee extends BankAccountUser {//Employee is a user
 		            break; //user didn't enter 1 / 2
 		        }
 			}catch(Exception e) {
-				
+				System.out.println("Didn't enter an integer or make a correct selection");
 			}
+		}
 	}
-
 }
