@@ -18,16 +18,7 @@ public class BankAccountUser {
 	//Already a user
 	public BankAccountUser(String user, String pass) {
 		this.userString = user;
-		this.passwordString = user;
-	}
-	
-	public Boolean createAccountUser() {
-		System.out.println("Please enter a username:");
-		userString = scan.nextLine();
-		System.out.println("Please enter a password:");
-		passwordString = scan.nextLine();		
-			
-		return true;
+		this.passwordString = pass;
 	}
 	
 	public Boolean changePassword(String newPass) {

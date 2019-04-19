@@ -14,18 +14,28 @@ public class App {
 	static double localBalance;
 	
 	public static void main(String[] args) {
-		//Store applications locally that would be populated for an employee from a database
-		ArrayList<BankingAccount> applicationsAccounts = new ArrayList<BankingAccount>();
 		BankAccountUser bankAccountUser = new BankAccountUser();
 		do {
 			System.out.println("Welcome to Banking R US");
 			System.out.println("Are you a Customer?: yes / no");	
 			input = scan.nextLine();
 			if(input.toLowerCase().equals("no")) {//Employee
-				BankingEmployee BE = new BankingEmployee(bankAccountUser.userString ,bankAccountUser.passwordString);
+				System.out.println("Enter Employee Username");	
+				String userName = scan.nextLine();
+				
+				System.out.println("Enter Employee Password");	
+				String userPass = scan.nextLine();
+				
+				BankingEmployee BE = new BankingEmployee(userName ,userPass);
 				BE.menu();	
 			}else if(input.toLowerCase().equals("yes")){//Customer	
-				BankingCustomer BC = new BankingCustomer(bankAccountUser.userString,bankAccountUser.passwordString);
+				System.out.println("Enter your Username");	
+				String userName = scan.nextLine();
+				
+				System.out.println("Enter your Password");	
+				String userPass = scan.nextLine();
+				
+				BankingCustomer BC = new BankingCustomer(userName ,userPass);
 				BC.menu();		
 			}
 			//Logs should be done in account or here?			

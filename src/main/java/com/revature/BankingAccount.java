@@ -27,6 +27,22 @@ public class BankingAccount {
 		this.Withdrawl = false;
 	}
 	
+	public int getAccountID() {
+		return AccountID;
+	}
+
+	public String getPrimaryUserName() {
+		return PrimaryUserName;
+	}
+
+	public String getJointUsername() {
+		return JointUsername;
+	}
+
+	public void setJointUsername(String jointUsername) {
+		JointUsername = jointUsername;
+	}
+	
 	// assumes double, checks if enough money is in balance, then returns if completed
 	public boolean withdrawl(double tender) {
 		Boolean workBoolean = false;
@@ -40,11 +56,11 @@ public class BankingAccount {
 	
 	//assumes double, adds money to balance, checks if money added greater than 0
 	public boolean deposit(double tender) {
-		if(tender > 0 && AccountStatus) {
+		if(tender > 0 ) {
 			Balance += tender;//and update database
 			this.Deposit = true;
 		}
-		return tender > 0;
+		return Deposit;
 	}
 	
 	//Show balance
@@ -54,7 +70,8 @@ public class BankingAccount {
 	
 	//ToggleAccountStatus
 	public Boolean approveAccount() {
-		return !AccountStatus;
+		this.AccountStatus = true;// can use !AccountStatus but just in case.
+		return AccountStatus;
 	}
 	
 	//Joint account
@@ -73,7 +90,7 @@ public class BankingAccount {
 	
 	//Change joint password
 	public Boolean changeJointPassword(String UserPass) {
-		if(JointAccount && JointPass!="") {
+		if(JointUsername.equals("")) {
 			this.JointPass = UserPass;			
 		}
 		return true;
@@ -92,4 +109,26 @@ public class BankingAccount {
 		this.Balance=change;			
 		return true;
 	}
+
+	//creating account set name
+	public void setUserName(String string) {
+		this.PrimaryUserName=string;
+	}
+
+	//creating account set name
+	public void setUserPass(String string) {
+		this.PrimaryPass=string;		
+	}
+	//Enter new balance
+	public boolean closeAccount() {
+		PrimaryUserName = null;
+		JointUsername = null;
+		PrimaryPass = null;
+		JointPass = null;	
+		Balance = 0.0;
+		JointAccount = false;
+		AccountStatus= false;	
+		return true;
+	}
+
 }
