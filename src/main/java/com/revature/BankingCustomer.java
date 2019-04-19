@@ -1,9 +1,7 @@
 package com.revature;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.*;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class BankingCustomer extends BankAccountUser{//Customer is a user
@@ -14,6 +12,7 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 	Boolean loggedIn = false;//account is logged in, shouldn't need to create a new account
 	int result;//integer casting variable
 	int accountIDCounter;//need to read the file to determine the value, then append the account line to it
+	ArrayList<BankingAccount> applicationsAccounts = new ArrayList<BankingAccount>();//update all customers on the file
 	
 	public BankingCustomer(String customername, String customerpass) {
 		super(customername, customerpass);
@@ -80,6 +79,66 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 		return false;
 	}
 	
+	private void reWriteAccounts() {
+		String accountsFile = "Accounts.txt";
+		String line = null;
+		int accountID=0;	
+		try {
+			FileReader fileReader = new FileReader(accountsFile);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
+			
+			while((line = bufferedReader.readLine()) !=null) {
+				String [] words = line.split(" ");	
+				Integer accountInt = tryInteger(words[0]);
+				Double balanceDouble = tryDouble(words[5]);
+				BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
+				applicationsAccounts.add(tempAccount);
+				accountID=accountInt;
+			}
+			bufferedReader.close();
+		}
+        catch(FileNotFoundException ex) {
+            System.out.println(
+                "Unable to open file '" + 
+                		accountsFile + "'");                
+        }
+        catch(IOException ex) {
+            System.out.println(
+                "Error reading file '" 
+                + accountsFile + "'");  
+        }
+		
+		try {
+            FileWriter fileWriter =
+                new FileWriter(accountsFile);
+
+            BufferedWriter bufferedWriter =
+                new BufferedWriter(fileWriter);
+
+			accountID += 1;
+
+            for (BankingAccount bankingAccount : applicationsAccounts) {
+            	bufferedWriter.write(accountID+" "+bankingAccount.getPrimaryUserName()+" "+bankingAccount.getPrimaryPass()+" "+
+            			bankingAccount.getJointUsername()+" "+bankingAccount.getJointPass()+" "+bankingAccount.getBalance()+" "+
+            			bankingAccount.getApproveStatus());
+    		            bufferedWriter.newLine();
+			}
+            
+            bufferedWriter.write(bA.getAccountID()+" "+bA.getPrimaryUserName()+" "+bA.getPrimaryPass()+" "+bA.getJointUsername()+" "+
+            bA.getJointPass()+" "+bA.getBalance()+" "+bA.getApproveStatus());
+            bufferedWriter.newLine();
+
+            bufferedWriter.close();
+            fileWriter.close();
+            
+        }
+        catch(IOException ex) {
+            System.out.println(
+                "Error writing to file '"
+                + accountsFile + "'");
+        }
+	}
+	
 	public void menu() {		
 		//Open account, check balance, deposit, withdrawal, close account
 		if(readCustomerFile(super.userString,super.passwordString)) {
@@ -104,9 +163,8 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 	        case 1: 
 	        	String userName=super.userString;
 	        	String userPass=super.passwordString;
-	        	readCustomerFile(userName, userPass);//update accountIDCounter
+	        	readCustomerFile(userName, userPass);
 	        	double Balance=0.0;	
-	        	accountIDCounter++;
 	        	
 				System.out.println("Creates account");
 				System.out.println("So you  have chosen a user name and password which are: "+userName+" "+userPass);
@@ -143,24 +201,84 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 					System.out.println("your account information: "+bA.getAccountID()+" "+bA.getPrimaryUserName()+" "+bA.getJointUsername()+" "+bA.getBalance());
 					System.out.println("Thank you for using the Banking App");
 				}
+				reWriteAccounts();
+//				String accountsFile = "Accounts.txt";
+//				String line = null;
+//				int accountID=0;	
+//				try {
+//					FileReader fileReader = new FileReader(accountsFile);
+//					BufferedReader bufferedReader = new BufferedReader(fileReader);
+//					
+//					while((line = bufferedReader.readLine()) !=null) {
+//						String [] words = line.split(" ");	
+//						Integer accountInt = tryInteger(words[0]);
+//						Double balanceDouble = tryDouble(words[5]);
+//						BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
+//						applicationsAccounts.add(tempAccount);
+//						accountID=accountInt;
+//					}
+//					bufferedReader.close();
+//				}
+//		        catch(FileNotFoundException ex) {
+//		            System.out.println(
+//		                "Unable to open file '" + 
+//		                		accountsFile + "'");                
+//		        }
+//		        catch(IOException ex) {
+//		            System.out.println(
+//		                "Error reading file '" 
+//		                + accountsFile + "'");  
+//		        }
+//				
+//				try {
+//		            FileWriter fileWriter =
+//		                new FileWriter(accountsFile);
+//
+//		            BufferedWriter bufferedWriter =
+//		                new BufferedWriter(fileWriter);
+//
+//					accountID += 1;
+//
+//		            for (BankingAccount bankingAccount : applicationsAccounts) {
+//		            	bufferedWriter.write(accountID+" "+bankingAccount.getPrimaryUserName()+" "+bankingAccount.getPrimaryPass()+" "+
+//		            			bankingAccount.getJointUsername()+" "+bankingAccount.getJointPass()+" "+bankingAccount.getBalance()+" "+
+//		            			bankingAccount.getApproveStatus());
+//		    		            bufferedWriter.newLine();
+//					}
+//		            
+//		            bufferedWriter.write(bA.getAccountID()+" "+bA.getPrimaryUserName()+" "+bA.getPrimaryPass()+" "+bA.getJointUsername()+" "+
+//		            bA.getJointPass()+" "+bA.getBalance()+" "+bA.getApproveStatus());
+//		            bufferedWriter.newLine();
+//
+//		            bufferedWriter.close();
+//		        }
+//		        catch(IOException ex) {
+//		            System.out.println(
+//		                "Error writing to file '"
+//		                + accountsFile + "'");
+//		        }
 	            break; 
 	        case 2:  
+	        	readCustomerFile(super.userString, super.passwordString);
 				System.out.println("Your balance is: "+bA.getBalance());
+				reWriteAccounts();
 	            break; 
 	        case 3: 
+	        	readCustomerFile(super.userString, super.passwordString);
 				System.out.println("Enter ammount to deposit: enter a double");
 				input = scan.nextLine();
 				if(tryDouble(input) != null) {
 					System.out.println("Your balance was: "+bA.getBalance());
 					bA.deposit(tryDouble(input));
 					System.out.println("Your new balance is: "+bA.getBalance());
-	        	}
-				else {
+					reWriteAccounts();
+	        	}else {
 					System.out.println("Didn't enter a Double");
 					break;
 				}
 	            break; 
 	        case 4:  
+	        	readCustomerFile(super.userString, super.passwordString);
 				System.out.println("Enter ammount to withdraw: enter a double");
 				input = scan.nextLine();
 				if(tryDouble(input) != null) {
@@ -171,6 +289,7 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 						System.out.println("Your balance was: "+bA.getBalance());
 						bA.withdrawl(tryDouble(input));
 						System.out.println("Your new balance is: "+bA.getBalance());
+						reWriteAccounts();
 					}
 	        	}
 				else {
@@ -179,10 +298,13 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 				}
 	            break; 
 	        case 5:
+	        	readCustomerFile(super.userString, super.passwordString);
 	        	bA.closeAccount();
+				reWriteAccounts();
 				System.out.println("Closed account, you are now broke");  
 	            break; 
 	        case 6:
+	        	readCustomerFile(super.userString, super.passwordString);
 				System.out.println("Enter your new password: "); 
 				if(bA.JointUsername.equals(super.userString)) {
 					input = scan.nextLine();
@@ -191,6 +313,7 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 					input = scan.nextLine();
 					bA.changePrimaryPassword(input);					
 				}
+				reWriteAccounts();
 	            break; 
 	        default: 
 	        	System.out.println("You didn't make a correct selection."); 
@@ -199,7 +322,6 @@ public class BankingCustomer extends BankAccountUser{//Customer is a user
 		}catch (Exception e) {
 			System.out.println("Did not input an integer?");
 		}
-	
 	}
 
 }

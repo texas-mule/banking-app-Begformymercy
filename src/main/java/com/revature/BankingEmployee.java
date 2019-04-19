@@ -30,7 +30,7 @@ public class BankingEmployee extends BankAccountUser {//Employee is a user
 					Integer accountInt = tryInteger(words[0]);
 					Double balanceDouble = tryDouble(words[5]);
 					BankingAccount tempAccount = new BankingAccount(accountInt, words[1], words[2], words[3], words[4], balanceDouble);
-					if(words[7].equals("false")) {
+					if(words[6].equals("false")) {
 						tempAccount.approveAccount();																
 					}
 					applicationsAccounts.add(tempAccount);	

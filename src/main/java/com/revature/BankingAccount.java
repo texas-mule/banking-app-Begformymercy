@@ -46,7 +46,7 @@ public class BankingAccount {
 	// assumes double, checks if enough money is in balance, then returns if completed
 	public boolean withdrawl(double tender) {
 		Boolean workBoolean = false;
-		if(tender <= Balance && AccountStatus) {
+		if(tender <= Balance) {// && AccountStatus) {
 			this.Withdrawl=true;
 			Balance -= tender;
 			workBoolean = true;
@@ -90,9 +90,7 @@ public class BankingAccount {
 	
 	//Change joint password
 	public Boolean changeJointPassword(String UserPass) {
-		if(JointUsername.equals("")) {
-			this.JointPass = UserPass;			
-		}
+		this.JointPass=UserPass;
 		return true;
 	}	
 	
@@ -129,6 +127,18 @@ public class BankingAccount {
 		JointAccount = false;
 		AccountStatus= false;	
 		return true;
+	}
+
+	public String getPrimaryPass() {
+		return this.PrimaryPass;
+	}
+
+	public String getJointPass() {
+		return this.JointPass;
+	}
+
+	public Boolean getApproveStatus() {
+		return this.AccountStatus;
 	}
 
 }
